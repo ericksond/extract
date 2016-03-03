@@ -37,16 +37,10 @@ type metric struct {
 }
 
 func main() {
-	// toml configurations
-	var config tomlConfig
-	if _, err := toml.DecodeFile("config.toml", &config); err != nil {
-		log.Fatal(err)
-		return
-	}
-
 	// flags
 	appdApp := flag.NewFlagSet("appd", flag.ExitOnError)
-	metricFlag := appdApp.String("metric", "all", "Appdynamics metric to call")
+	appdMetricFlag := appdApp.String("metric", "all", "Appdynamics metric to call")
+	appdConfigFlag := appdApp.String("config", "", "configuration file")
 
 	splunkApp := flag.NewFlagSet("splunk", flag.ExitOnError)
 	//searchFlag := splunkApp.String("search", "s", "Splunk saved search to call")
@@ -71,8 +65,20 @@ func main() {
 
 	// Parsed appdynamics
 	if appdApp.Parsed() {
+		// toml configurations
+		var config tomlConfig
+		if *appdConfigFlag != "" {
+			if _, err := toml.DecodeFile(*appdConfigFlag, &config); err != nil {
+				log.Fatal(err)
+				return
+			}
+		} else {
+			fmt.Println("TOML Configuration file required; -config <path_to_config_file.toml>")
+			os.Exit(3)
+		}
+
 		if config.Appdynamics.Enabled == true {
-			if *metricFlag == "all" || *metricFlag == "" {
+			if *appdMetricFlag == "all" || *appdMetricFlag == "" {
 				for _, metric := range config.Metrics {
 					//fmt.Printf("Metric: %s (%s)\n", metric.Name, metric.Path)
 					appd := &appdynamics{
@@ -93,8 +99,8 @@ func main() {
 					Pass:         config.Appdynamics.Pass,
 					BaseURL:      config.Appdynamics.BaseURL,
 					BaseFilePath: config.Appdynamics.BaseFilePath,
-					Path:         config.Metrics[*metricFlag].Path,
-					Name:         config.Metrics[*metricFlag].Name,
+					Path:         config.Metrics[*appdMetricFlag].Path,
+					Name:         config.Metrics[*appdMetricFlag].Name,
 					Proxy:        config.Appdynamics.Proxy,
 					ProxyURL:     config.Proxy.URL,
 				}
@@ -105,7 +111,4 @@ func main() {
 			fmt.Println("Appdynamics extraction is disabled.")
 		}
 	}
-
-	// Static Server for JSON files
-	//log.Fatal(http.ListenAndServe(":8080", http.FileServer(http.Dir("json"))))
 }
