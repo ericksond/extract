@@ -10,9 +10,11 @@ import (
 )
 
 type tomlConfig struct {
-	Proxy       proxy
-	Appdynamics appdynamics
-	Metrics     map[string]metric
+	Proxy         proxy
+	Appdynamics   appdynamics
+	Metrics       map[string]metric
+	Splunk        splunk
+	SavedSearches map[string]savedsearches
 }
 
 type proxy struct {
@@ -36,6 +38,21 @@ type metric struct {
 	Path string
 }
 
+type splunk struct {
+	Enabled     bool
+	Proxy       bool
+	ProxyURL    string
+	User        string
+	Pass        string
+	Host        string
+	Port        string
+	SavedSearch string
+}
+
+type savedsearches struct {
+	Name string
+}
+
 func main() {
 	// flags
 	appdApp := flag.NewFlagSet("appd", flag.ExitOnError)
@@ -43,10 +60,12 @@ func main() {
 	appdConfigFlag := appdApp.String("config", "", "configuration file")
 
 	splunkApp := flag.NewFlagSet("splunk", flag.ExitOnError)
+	splunkSearchFlag := splunkApp.String("search", "", "Splunk SavedSearch name")
+	splunkConfigFlag := splunkApp.String("config", "", "configuration file")
 	//searchFlag := splunkApp.String("search", "s", "Splunk saved search to call")
 
 	if len(os.Args) == 1 {
-		fmt.Println("usage: extract <app> [<args>]")
+		fmt.Println("usage: extract <app> -config <path_to_config> [<args>]")
 		fmt.Println("The most commonly used extract apps are: ")
 		fmt.Println(" appdynamics   AppDynamics")
 		fmt.Println(" splunk  Splunk")
@@ -109,6 +128,37 @@ func main() {
 			}
 		} else {
 			fmt.Println("Appdynamics extraction is disabled.")
+		}
+	}
+
+	// Parsed splunk
+	if splunkApp.Parsed() {
+		// toml configurations
+		var config tomlConfig
+		if *splunkConfigFlag != "" {
+			if _, err := toml.DecodeFile(*splunkConfigFlag, &config); err != nil {
+				log.Fatal(err)
+				return
+			}
+		} else {
+			fmt.Println("TOML Configuration file required; -config <path_to_config_file.toml>")
+			os.Exit(3)
+		}
+
+		if config.Splunk.Enabled == true {
+			if *splunkSearchFlag != "" {
+				splunk := &splunk{
+					User:        config.Splunk.User,
+					Pass:        config.Splunk.Pass,
+					Host:        config.Splunk.Host,
+					Port:        config.Splunk.Port,
+					ProxyURL:    config.Splunk.ProxyURL,
+					SavedSearch: config.SavedSearches[*splunkSearchFlag].Name,
+				}
+				splunk.CreateSplunkFile()
+			} else {
+				fmt.Println("Saved Search required; -search <savedsearch name>")
+			}
 		}
 	}
 }
