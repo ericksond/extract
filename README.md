@@ -47,12 +47,12 @@ basefilepath = "json/"
 
 ###Example Usage:
 
-####Extract all metrics from the config file
+#####Extract all metrics from the config file
 ```
 extract appdynamics -config config.toml
 ```
 
-####Extract a specific metric
+#####Extract a specific metric
 ```
 exctract appdynamics -config config.toml -metric first
 ```
