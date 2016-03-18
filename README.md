@@ -4,6 +4,8 @@ A lightweight application used to extract JSON data from a RESTful endpoint and 
 
 ###Compile with Go:
 ```
+git clone https://github.com/ericksond/extract.git
+cd extract
 go get github.com/BurntSushi/toml
 go build
 ```
