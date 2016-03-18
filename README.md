@@ -1,6 +1,6 @@
 # extract
 
-A lightweight application used to extract JSON data from a RESTful endpoint and simply generate a local JSON file. Support proxy calls behind a proxy.
+A lightweight application used to extract JSON data from a RESTful endpoint and simply generate a local JSON file. Support calls behind a proxy.
 
 ###Compile with Go:
 ```
