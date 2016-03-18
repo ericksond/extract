@@ -4,6 +4,7 @@ A lightweight application used to extract JSON data from a RESTful endpoint and 
 
 ###Compile with Go:
 ```
+go get github.com/BurntSushi/toml
 go build
 ```
 
